@@ -1,0 +1,13 @@
+---
+
+  - src: https://github.com/agalitsyn/ansible-node.git
+    path: roles/agalitsyn.node
+    name: agalitsyn.node
+    version: master
+    scm: git
+
+  - src: https://github.com/angstwad/docker.ubuntu.git
+    path: roles/angstwad.docker_ubuntu
+    name: angstwad.docker_ubuntu
+    version: v3.8.1
+    scm: git

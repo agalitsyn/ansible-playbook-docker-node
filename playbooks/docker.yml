@@ -1,0 +1,27 @@
+---
+
+- hosts: all
+  gather_facts: False
+  become: true
+  tasks:
+    - name: update package cache
+      raw: apt -qqy update
+
+    - name: install python2
+      raw: test -e /usr/bin/python || apt install -qy python-minimal
+      register: output
+      changed_when: output.stdout|trim() != ""
+
+- hosts: all
+  become: true
+  roles:
+    - agalitsyn.node
+  tags:
+    - node
+
+- hosts: all
+  become: true
+  roles:
+    - angstwad.docker_ubuntu
+  tags:
+    - docker

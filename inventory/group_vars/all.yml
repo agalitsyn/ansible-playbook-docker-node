@@ -1,0 +1,8 @@
+---
+
+node_ssh_user: ansible
+node_ssh_port: 2345
+
+docker_group_members:
+  - "{{ node_ssh_user }}"
+docker_opts: "--log-driver json-file --log-opt max-size=100m"
