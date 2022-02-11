@@ -5,9 +5,9 @@
     name: agalitsyn.node
     version: master
     scm: git
-
-  - src: https://github.com/angstwad/docker.ubuntu.git
-    path: roles/angstwad.docker_ubuntu
-    name: angstwad.docker_ubuntu
-    version: v3.8.1
+  
+  - src: https://github.com/agalitsyn/ansible-docker.git
+    path: roles/agalitsyn.docker
+    name: agalitsyn.docker
+    version: master
     scm: git
