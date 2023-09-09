@@ -10,4 +10,4 @@ lint:
 
 .PHONY: install-roles
 install-roles:
-	ansible-galaxy -v install --role-file ansible-galaxy.yml --roles-path roles --force --ignore-errors
+	ansible-galaxy install --role-file ansible-galaxy.yml --roles-path roles --force --ignore-errors

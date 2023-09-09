@@ -41,7 +41,7 @@ With default variables you can connect like:
 ssh 12.34.56.78 -l ansible -p 2345
 ```
 
-## Edit inventory file
+## Update inventory file for new user
 
 Ansible created ssh user, changed sshd ports and etc, so we need to update inventory file for next runs:
 
