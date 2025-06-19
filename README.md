@@ -24,7 +24,7 @@ For the first run you propbably will have something like this:
 
 ```
 [all]
-docker-0 ansible_host=12.34.56.78 ansible_port=22 ansible_user=ubuntu
+docker-0 ansible_host=12.34.56.78 ansible_port=22 ansible_user=root
 ```
 
 ## Run playbook
@@ -35,7 +35,14 @@ ansible-playbook -vv -i inventory/inventory playbooks/docker.yml
 
 ## Test
 
-With default variables you can connect like:
+First test new user with default ssh port and then reboot node
+
+```bash
+ssh 12.34.56.78 -l ansible -p 22
+$ sudo reboot
+```
+
+ssh should now work on new port:
 
 ```bash
 ssh 12.34.56.78 -l ansible -p 2345
@@ -47,5 +54,5 @@ Ansible created ssh user, changed sshd ports and etc, so we need to update inven
 
 ```
 [all]
-docker-0 ansible_host=12.34.56.78 ansible_port=2345 ansible_user=ansible
+do-docker-ams3-01 ansible_host=12.34.56.78 ansible_port=2345 ansible_user=ansible
 ```
