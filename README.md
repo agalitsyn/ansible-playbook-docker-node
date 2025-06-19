@@ -9,7 +9,7 @@ Cloud provider agnostic automation for provisioning node with Docker daemon.
 
 ## Provision VM
 
-Use your favourite cloud and create instance with Ubuntu 20.04
+Use your favourite cloud and create instance with Ubuntu 24.04
 Don't forget to:
 * configure ssh keys
 * obtain public IP address
