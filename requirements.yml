@@ -1,13 +1,18 @@
 ---
 
+collections:
+  - name: ansible.posix
+    version: ">=1.5.0"
+  - name: community.general
+    version: ">=8.0.0"
+
+roles:
   - src: https://github.com/agalitsyn/ansible-node.git
-    path: roles/agalitsyn.node
     name: agalitsyn.node
-    version: master
     scm: git
-  
+    version: master
+
   - src: https://github.com/agalitsyn/ansible-docker.git
-    path: roles/agalitsyn.docker
     name: agalitsyn.docker
-    version: master
     scm: git
+    version: master

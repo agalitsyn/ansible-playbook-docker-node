@@ -1,6 +1,16 @@
 ---
 
+# Endpoint a freshly provisioned cloud VM answers on, used until the node
+# role has created the admin user and moved sshd.
+node_bootstrap_user: root
+node_bootstrap_port: 22
+
+# Endpoint the node answers on once hardened.
 node_ssh_user: ansible
 node_ssh_port: 2345
+
+node_ufw_setup: true
+node_fail2ban_setup: true
+node_unattended_upgrades_setup: true
 
 docker_group_member: "{{ node_ssh_user }}"
