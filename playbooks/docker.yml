@@ -1,22 +1,93 @@
 ---
 
-- hosts: all
-  gather_facts: False
-  become: true
+# The run hardens SSH while it is using SSH: the port moves to
+# node_ssh_port and root login is disabled. To stay re-runnable the
+# playbook first works out which endpoint the host is currently answering
+# on, then follows the change over to the new one.
+
+- name: Discover the SSH endpoint
+  hosts: all
+  gather_facts: false
+  become: false
+  # `always` so that a tag-limited run (`--tags docker`) still works out
+  # which endpoint to connect to instead of falling back to the inventory
+  # defaults and hanging on the wrong port.
+  tags: always
   tasks:
-    - name: update package cache
-      raw: apt -qqy update
+    # delegate_to rather than `connection: local` on the play: the latter
+    # makes Ansible discover a *local* Python for this host and cache it as
+    # the host's interpreter, which then gets used over SSH in later plays.
+    #
+    # ignore_errors rather than failed_when: false -- the latter would
+    # overwrite probe_hardened.failed and the test below would always take
+    # the hardened branch. A failure here is expected on a fresh VM.
+    - name: Probe the hardened SSH port
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: "{{ node_ssh_port }}"
+        state: started
+        timeout: 5
+      delegate_to: localhost
+      register: probe_hardened
+      ignore_errors: true
+      changed_when: false
 
-- hosts: all
+    - name: Use the hardened endpoint when it answers
+      ansible.builtin.set_fact:
+        ansible_user: "{{ node_ssh_user }}"
+        ansible_port: "{{ node_ssh_port }}"
+      when: not probe_hardened.failed
+
+    - name: Otherwise fall back to the bootstrap endpoint
+      ansible.builtin.set_fact:
+        ansible_user: "{{ node_bootstrap_user }}"
+        ansible_port: "{{ node_bootstrap_port }}"
+      when: probe_hardened.failed
+
+    - name: Report the endpoint in use
+      ansible.builtin.debug:
+        msg: "Connecting as {{ ansible_user }}@{{ ansible_host }}:{{ ansible_port }}"
+
+- name: Bootstrap the Python interpreter
+  hosts: all
+  gather_facts: false
+  become: true
+  tags: always
+  tasks:
+    # Runs before facts, so it cannot rely on a Python interpreter being
+    # there. Ubuntu cloud images ship one, but a minimal image may not.
+    - name: Ensure Python 3 is installed
+      ansible.builtin.raw: >-
+        test -x /usr/bin/python3 ||
+        (apt-get -qqy update && apt-get -qqy install python3)
+      register: bootstrap_python
+      changed_when: "'Setting up python3' in bootstrap_python.stdout"
+
+- name: Configure the base node
+  hosts: all
   become: true
   roles:
-    - agalitsyn.node
-  tags:
-    - node
+    - role: agalitsyn.node
+      tags: [node]
+  post_tasks:
+    # From here on the host answers as node_ssh_user on node_ssh_port, so
+    # later plays have to be told about it.
+    - name: Point subsequent plays at the hardened endpoint
+      ansible.builtin.set_fact:
+        ansible_user: "{{ node_ssh_user }}"
+        ansible_port: "{{ node_ssh_port }}"
+      tags: always
 
-- hosts: all
+    - name: Drop the old connection
+      ansible.builtin.meta: reset_connection
+
+    - name: Verify the hardened endpoint accepts us
+      ansible.builtin.ping:
+      tags: always
+
+- name: Install Docker
+  hosts: all
   become: true
   roles:
-    - agalitsyn.docker
-  tags:
-    - docker
+    - role: agalitsyn.docker
+      tags: [docker]
