@@ -19,6 +19,41 @@ Create an instance with Ubuntu 26.04, add your SSH key, and note the public
 IP. Anything above 512MB RAM is comfortable; at 512MB the node role's swap
 file is what keeps the Docker install from being OOM-killed.
 
+### With doctl
+
+Creates the droplet and turns on weekly backups, every parameter spelled
+out. Change the name; the rest reproduces the `thaidesk` node exactly:
+
+```bash
+doctl compute droplet create thaidesk --size s-1vcpu-512mb-10gb --region sgp1 --image ubuntu-26-04-x64 --vpc-uuid b2d1ac16-6b40-4abd-af7b-c712565917bc --ssh-keys 54371410 --wait --no-header --format ID | xargs -I{} doctl compute droplet-action enable-backups {} --backup-policy-plan weekly --backup-policy-weekday SUN --backup-policy-hour 20 --wait --format ID,Status,Type
+```
+
+Backups are a separate action rather than `--enable-backups` on `create`,
+because that flag was silently ignored here: the droplet came up with
+`features: [droplet_agent, private_networking]` and no backups at all.
+
+The two account-specific IDs come from:
+
+```bash
+doctl compute ssh-key list          # --ssh-keys
+doctl vpcs list                     # --vpc-uuid, the default for the region
+```
+
+Weekly backups cost 20% of the droplet ($0.80/month on this size), daily
+30%. `--backup-policy-hour` is UTC. Leaving the policy flags off gets you
+daily backups.
+
+Then the public IP, for the inventory:
+
+```bash
+doctl compute droplet list --format Name,PublicIPv4
+```
+
+Expect `doctl` to report stale values right after a write — backup
+settings and reserved IP assignments took minutes to show up in
+`droplet get` and `reserved-ip list` while already being in effect. Verify
+against `next_backup_window`, or just connect.
+
 ## Create an inventory file
 
 Only the address is needed. The playbook works out the user and port
