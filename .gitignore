@@ -3,3 +3,7 @@
 
 roles
 inventory/inventory
+
+# work files we don't want to commit and delete
+/data/
+
